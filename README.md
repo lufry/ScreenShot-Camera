@@ -2,7 +2,6 @@
 
 ScreenShot Camera is a lightweight World of Warcraft addon designed to help players capture screenshots from custom framing angles with real-time post-processing adjustments. By adjusting camera offsets and color overlays, you can create cinematic character showcases and environmental captures directly in-game.
 
-\---
 
 ## Features
 
@@ -11,7 +10,6 @@ ScreenShot Camera is a lightweight World of Warcraft addon designed to help play
 * **Automated Clean Capture:** The built-in screenshot feature automatically hides the entire user interface, captures the image, and restores the UI seamlessly.
 * **Minimap Shortcut:** Includes a draggable spyglass icon on the minimap for quick access to the configuration panel.
 
-\---
 
 ## In-Game Commands
 
@@ -23,7 +21,6 @@ The control panel can be accessed via the minimap icon, the standard AddOn setti
 * `/ssc reset` — Resets all adjustment sliders back to their default values.
 * `/ssc help` — Displays a quick summary of available commands in the chat log.
 
-\---
 
 ## Visual Guide to Sliders
 
@@ -35,7 +32,6 @@ The configuration window features five primary adjustment sliders managed inside
 * **Contrast:** Tightens or widens the dynamic visual range via overlay tinting approximations.
 * **Temperature:** Warms the image with golden tones or cools it with blue tones to simulate different times of day or weather conditions.
 
-\---
 
 ## Installation
 
@@ -44,9 +40,7 @@ The configuration window features five primary adjustment sliders managed inside
 `World of Warcraft/\_retail\_/Interface/AddOns/` (or your respective game version directory, such as `\_classic\_`).
 3. Ensure the addon is enabled in your character selection screen, then log in to configure your camera.
 
-\---
 
 ## Credits
 
 Developed by **Tumnus-Nemesis**.
-
