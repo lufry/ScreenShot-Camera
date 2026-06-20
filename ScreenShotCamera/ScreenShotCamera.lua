@@ -40,11 +40,121 @@ local filterTextures = {}
 local controls = {}
 local RefreshControlState
 
+local EMOTES = {
+    { label = "Angry",            command = "ANGRY" },
+    { label = "Apologize",        command = "APOLOGIZE" },
+    { label = "Applaud",          command = "APPLAUD" },
+    { label = "Attack Target",    command = "ATTACKTARGET" },
+    { label = "Bashful",          command = "BASHFUL" },
+    { label = "Beg",              command = "BEG" },
+    { label = "Blame",            command = "BLAME" },
+    { label = "Blush",            command = "BLUSH" },
+    { label = "Boggle",           command = "BOGGLE" },
+    { label = "Boop",             command = "BOOP" },
+    { label = "Bored",            command = "BORED" },
+    { label = "Bow",              command = "BOW" },
+    { label = "Bye",              command = "BYE" },
+    { label = "Cackle",           command = "CACKLE" },
+    { label = "Charge",           command = "CHARGE" },
+    { label = "Cheer",            command = "CHEER" },
+    { label = "Chicken",          command = "CHICKEN" },
+    { label = "Chuckle",          command = "CHUCKLE" },
+    { label = "Clap",             command = "CLAP" },
+    { label = "Commend",          command = "COMMEND" },
+    { label = "Confused",         command = "CONFUSED" },
+    { label = "Congratulate",     command = "CONGRATULATE" },
+    { label = "Cower",            command = "COWER" },
+    { label = "Cry",              command = "CRY" },
+    { label = "Curious",          command = "CURIOUS" },
+    { label = "Curtsey",          command = "CURTSEY" },
+    { label = "Dance",            command = "DANCE" },
+    { label = "Disagree",         command = "DISAGREE" },
+    { label = "Doubt",            command = "DOUBT" },
+    { label = "Drink",            command = "DRINK" },
+    { label = "Eat",              command = "EAT" },
+    { label = "Flee",             command = "FLEE" },
+    { label = "Flex",             command = "FLEX" },
+    { label = "Flirt",            command = "FLIRT" },
+    { label = "Follow Me",        command = "FOLLOWME" },
+    { label = "For the Alliance", command = "FORTHEALLIANCE" },
+    { label = "For the Horde",    command = "FORTHEHORDE" },
+    { label = "Gasp",             command = "GASP" },
+    { label = "Giggle",           command = "GIGGLE" },
+    { label = "Gloat",            command = "GLOAT" },
+    { label = "Golf Clap",        command = "GOLFCLAP" },
+    { label = "Greet",            command = "GREET" },
+    { label = "Grovel",           command = "GROVEL" },
+    { label = "Growl",            command = "GROWL" },
+    { label = "Guffaw",           command = "GUFFAW" },
+    { label = "Hail",             command = "HAIL" },
+    { label = "Heal Me",          command = "HELPME" },
+    { label = "Hello",            command = "HELLO" },
+    { label = "Help Me",          command = "HELPME" },
+    { label = "Huzzah",           command = "HUZZAH" },
+    { label = "Impressed",        command = "IMPRESSED" },
+    { label = "Incoming",         command = "INCOMING" },
+    { label = "Insult",           command = "INSULT" },
+    { label = "Kiss",             command = "KISS" },
+    { label = "Kneel",            command = "KNEEL" },
+    { label = "Laugh",            command = "LAUGH" },
+    { label = "Lay Down",         command = "LAYDOWN" },
+    { label = "Lost",             command = "LOST" },
+    { label = "Magnificent",      command = "MAGNIFICENT" },
+    { label = "Mercy",            command = "MERCY" },
+    { label = "Mount Special",    command = "MOUNTSPECIAL" },
+    { label = "Mourn",            command = "MOURN" },
+    { label = "No",               command = "NO" },
+    { label = "Nod",              command = "NOD" },
+    { label = "Object",           command = "OBJECT" },
+    { label = "OOM",              command = "OOM" },
+    { label = "Oops",             command = "OOPS" },
+    { label = "Open Fire",        command = "OPENFIRE" },
+    { label = "Plead",            command = "PLEAD" },
+    { label = "Point",            command = "POINT" },
+    { label = "Ponder",           command = "PONDER" },
+    { label = "Pray",             command = "PRAY" },
+    { label = "Puzzled",          command = "PUZZLED" },
+    { label = "Quack",            command = "QUACK" },
+    { label = "Rasp",             command = "RASP" },
+    { label = "Read",             command = "READ" },
+    { label = "Roar",             command = "ROAR" },
+    { label = "ROFL",             command = "ROFL" },
+    { label = "Rude",             command = "RUDE" },
+    { label = "Salute",           command = "SALUTE" },
+    { label = "Scared",           command = "SCARED" },
+    { label = "Shout",            command = "SHOUT" },
+    { label = "Shrug",            command = "SHRUG" },
+    { label = "Shy",              command = "SHY" },
+    { label = "Sigh",             command = "SIGH" },
+    { label = "Silly",            command = "SILLY" },
+    { label = "Sing",             command = "SING" },
+    { label = "Sit",              command = "SIT" },
+    { label = "Sleep",            command = "SLEEP" },
+    { label = "Sniff",            command = "SNIFF" },
+    { label = "Stand",            command = "STAND" },
+    { label = "Surrender",        command = "SURRENDER" },
+    { label = "Talk",             command = "TALK" },
+    { label = "Talk (Excited)",   command = "TALKEX" },
+    { label = "Talk (Question)",  command = "TALKQ" },
+    { label = "Taunt",            command = "TAUNT" },
+    { label = "Thank",            command = "THANK" },
+    { label = "Threaten",         command = "THREATEN" },
+    { label = "Train",            command = "TRAIN" },
+    { label = "Victory",          command = "VICTORY" },
+    { label = "Violin",           command = "VIOLIN" },
+    { label = "Wait",             command = "WAIT" },
+    { label = "Wave",             command = "WAVE" },
+    { label = "Welcome",          command = "WELCOME" },
+    { label = "Whistle",          command = "WHISTLE" },
+    { label = "Whoa",             command = "WHOA" },
+    { label = "Yawn",             command = "YAWN" },
+    { label = "You're Welcome",   command = "YW" },
+}
+
 local function DeepCopy(value)
     if type(value) ~= "table" then
         return value
     end
-
     local copy = {}
     for key, child in pairs(value) do
         copy[key] = DeepCopy(child)
@@ -117,45 +227,30 @@ end
 local function ReadCVar(cvar)
     if C_CVar and C_CVar.GetCVar then
         local ok, value = pcall(C_CVar.GetCVar, cvar)
-        if ok then
-            return value
-        end
+        if ok then return value end
     end
-
     if GetCVar then
         local ok, value = pcall(GetCVar, cvar)
-        if ok then
-            return value
-        end
+        if ok then return value end
     end
 end
 
 local function WriteCVar(cvar, value)
-    if value == nil then
-        return false
-    end
-
+    if value == nil then return false end
     local textValue = tostring(value)
     if C_CVar and C_CVar.SetCVar then
         local ok, result = pcall(C_CVar.SetCVar, cvar, textValue)
-        if ok and result ~= false then
-            return true
-        end
+        if ok and result ~= false then return true end
     end
-
     if SetCVar then
         local ok, result = pcall(SetCVar, cvar, textValue, addonName)
-        if ok and result ~= false then
-            return true
-        end
+        if ok and result ~= false then return true end
     end
-
     return false
 end
 
 local function CaptureOriginals()
     db.originals = db.originals or {}
-
     for _, cvar in ipairs(controlledCVars) do
         if db.originals[cvar] == nil then
             local value = ReadCVar(cvar)
@@ -167,54 +262,40 @@ local function CaptureOriginals()
 end
 
 local function RestoreOriginals()
-    if not db or not db.originals then
-        return
-    end
-
+    if not db or not db.originals then return end
     for cvar, value in pairs(db.originals) do
         WriteCVar(cvar, value)
     end
-
     db.originals = {}
 end
 
 local function SetOverlayColor(texture, r, g, b, alpha)
-    if not texture then
-        return
-    end
-
+    if not texture then return end
     if alpha <= 0.001 then
         texture:Hide()
         return
     end
-
     if texture.SetColorTexture then
         texture:SetColorTexture(r, g, b, 1)
     else
         texture:SetTexture(r, g, b, 1)
     end
-
     texture:SetAlpha(alpha)
     texture:Show()
 end
 
 local function EnsureFilterFrame()
-    if filterFrame then
-        return filterFrame
-    end
-
+    if filterFrame then return filterFrame end
     local parent = WorldFrame or UIParent
     filterFrame = CreateFrame("Frame", "ScreenShotCameraFilterFrame", parent)
     filterFrame:SetFrameStrata("LOW")
     filterFrame:SetFrameLevel(0)
     filterFrame:EnableMouse(false)
-
     if UIParent then
         filterFrame:SetAllPoints(UIParent)
     else
         filterFrame:SetAllPoints(parent)
     end
-
     for _, name in ipairs({ "contrast", "temperature", "brightness" }) do
         local texture = filterFrame:CreateTexture(nil, "OVERLAY")
         texture:SetAllPoints(filterFrame)
@@ -222,23 +303,17 @@ local function EnsureFilterFrame()
         texture:Hide()
         filterTextures[name] = texture
     end
-
     filterFrame:Hide()
     return filterFrame
 end
 
 local function ApplyFilterSettings()
-    if not db then
-        return
-    end
-
+    if not db then return end
     EnsureFilterFrame()
-
     if not db.enabled then
         filterFrame:Hide()
         return
     end
-
     db.filters = ApplyDefaults(db.filters or {}, defaults.filters)
     db.filters.brightness = Clamp(db.filters.brightness, -1, 1)
     db.filters.contrast = Clamp(db.filters.contrast, -1, 1)
@@ -247,10 +322,7 @@ local function ApplyFilterSettings()
     local brightness = Round(db.filters.brightness, 2)
     local contrast = Round(db.filters.contrast, 2)
     local temperature = Round(db.filters.temperature, 2)
-    local hasFilter =
-        math.abs(brightness) > 0.001 or
-        math.abs(contrast) > 0.001 or
-        math.abs(temperature) > 0.001
+    local hasFilter = math.abs(brightness) > 0.001 or math.abs(contrast) > 0.001 or math.abs(temperature) > 0.001
 
     if not hasFilter then
         filterFrame:Hide()
@@ -258,19 +330,16 @@ local function ApplyFilterSettings()
     end
 
     filterFrame:Show()
-
     if contrast >= 0 then
         SetOverlayColor(filterTextures.contrast, 0, 0, 0, contrast * 0.24)
     else
         SetOverlayColor(filterTextures.contrast, 0.85, 0.85, 0.85, math.abs(contrast) * 0.22)
     end
-
     if temperature >= 0 then
         SetOverlayColor(filterTextures.temperature, 1, 0.46, 0.12, temperature * 0.28)
     else
         SetOverlayColor(filterTextures.temperature, 0.16, 0.42, 1, math.abs(temperature) * 0.28)
     end
-
     if brightness >= 0 then
         SetOverlayColor(filterTextures.brightness, 1, 1, 1, brightness * 0.32)
     else
@@ -279,10 +348,7 @@ local function ApplyFilterSettings()
 end
 
 local function TakeCleanScreenshot()
-    if not Screenshot then
-        return
-    end
-
+    if not Screenshot then return end
     local uiWasShown = UIParent and UIParent:IsShown()
     local panelWasShown = mainFrame and mainFrame:IsShown()
 
@@ -295,27 +361,29 @@ local function TakeCleanScreenshot()
         end
     end
 
-    After(0.1, function()
+    local function doScreenshotAndRestore()
         Screenshot()
-
-        After(0.7, function()
+        After(1.0, function()
             if UIParent and uiWasShown then
                 pcall(UIParent.Show, UIParent)
             end
-
             if mainFrame and panelWasShown then
                 mainFrame:Show()
                 RefreshControlState()
             end
         end)
-    end)
+    end
+
+    if db.selectedEmote then
+        DoEmote(db.selectedEmote)
+        After(1.5, doScreenshotAndRestore)
+    else
+        After(0.1, doScreenshotAndRestore)
+    end
 end
 
 local function ApplyCameraSettings()
-    if not db then
-        return
-    end
-
+    if not db then return end
     db.horizontalOffset = Clamp(db.horizontalOffset, -10, 10)
     db.verticalOffset = Clamp(db.verticalOffset, 0, 1)
 
@@ -326,7 +394,6 @@ local function ApplyCameraSettings()
     end
 
     CaptureOriginals()
-
     local horizontal = Round(db.horizontalOffset, 1)
     local vertical = Round(db.verticalOffset, 2)
     local usesDynamicPitch = vertical > 0.001
@@ -339,40 +406,43 @@ local function ApplyCameraSettings()
     if math.abs(horizontal) > 0.001 or usesDynamicPitch then
         WriteCVar("CameraKeepCharacterCentered", 0)
     end
-
     if math.abs(horizontal) > 0.001 then
         WriteCVar("CameraReduceUnexpectedMovement", 0)
     end
-
     ApplyFilterSettings()
 end
 
-RefreshControlState = function()
-    if not mainFrame or not db then
-        return
+local function GetEmoteLabelByCommand(command)
+    if not command then return "None" end
+    for _, emote in ipairs(EMOTES) do
+        if emote.command == command then
+            return emote.label
+        end
     end
+    return "None"
+end
 
+RefreshControlState = function()
+    if not mainFrame or not db then return end
     if controls.enable then
         controls.enable:SetChecked(db.enabled)
     end
-
     for _, slider in pairs(controls.sliders or {}) do
         if slider.SetEnabled then
             slider:SetEnabled(db.enabled)
         end
         slider:SetAlpha(db.enabled and 1 or 0.45)
     end
-
     if controls.status then
         controls.status:SetText(db.enabled and "Camera active" or "Camera inactive")
+    end
+    if controls.refreshEmoteText then
+        controls.refreshEmoteText()
     end
 end
 
 local function SaveWindowPosition()
-    if not mainFrame or not db then
-        return
-    end
-
+    if not mainFrame or not db then return end
     local point, _, _, x, y = mainFrame:GetPoint(1)
     db.window.point = point or "CENTER"
     db.window.x = Round(x or 0, 0)
@@ -381,31 +451,26 @@ end
 
 local function CreateSlider(parent, name, label, key, minValue, maxValue, step, decimals, yOffset, owner)
     owner = owner or db
-
     local sliderName = "ScreenShotCamera" .. name .. "Slider"
     local slider = CreateFrame("Slider", sliderName, parent, "OptionsSliderTemplate")
     slider:SetPoint("TOPLEFT", parent, "TOPLEFT", 26, yOffset)
     slider:SetPoint("RIGHT", parent, "RIGHT", -26, 0)
     slider:SetMinMaxValues(minValue, maxValue)
     slider:SetValueStep(step)
-
     if slider.SetObeyStepOnDrag then
         slider:SetObeyStepOnDrag(true)
     end
-
     _G[sliderName .. "Low"]:SetText(tostring(minValue))
     _G[sliderName .. "High"]:SetText(tostring(maxValue))
 
     local title = _G[sliderName .. "Text"]
     title:SetText(label .. ": " .. FormatNumber(owner[key], decimals))
-
     slider:SetScript("OnValueChanged", function(self, value)
         value = Round(value, decimals)
         owner[key] = value
         title:SetText(label .. ": " .. FormatNumber(value, decimals))
         ApplyCameraSettings()
     end)
-
     slider:SetValue(owner[key])
     return slider
 end
@@ -417,7 +482,7 @@ local function ResetSettings()
     db.filters.brightness = defaults.filters.brightness
     db.filters.contrast = defaults.filters.contrast
     db.filters.temperature = defaults.filters.temperature
-    db.filters.gamma = nil
+    db.selectedEmote = nil
 
     if controls.sliders then
         controls.sliders.horizontal:SetValue(db.horizontalOffset)
@@ -426,19 +491,18 @@ local function ResetSettings()
         controls.sliders.contrast:SetValue(db.filters.contrast)
         controls.sliders.temperature:SetValue(db.filters.temperature)
     end
-
+    if controls.refreshEmoteText then
+        controls.refreshEmoteText()
+    end
     ApplyCameraSettings()
     RefreshControlState()
 end
 
 local function CreateMainFrame()
-    if mainFrame then
-        return mainFrame
-    end
-
+    if mainFrame then return mainFrame end
     local template = BackdropTemplateMixin and "BackdropTemplate" or nil
     mainFrame = CreateFrame("Frame", "ScreenShotCameraFrame", UIParent, template)
-    mainFrame:SetSize(430, 500)
+    mainFrame:SetSize(430, 560)
     mainFrame:SetPoint(db.window.point or "CENTER", UIParent, db.window.point or "CENTER", db.window.x or 0, db.window.y or 0)
     mainFrame:SetFrameStrata("DIALOG")
     mainFrame:SetMovable(true)
@@ -450,6 +514,8 @@ local function CreateMainFrame()
         SaveWindowPosition()
     end)
     mainFrame:Hide()
+
+    tinsert(UISpecialFrames, "ScreenShotCameraFrame")
 
     if mainFrame.SetBackdrop then
         mainFrame:SetBackdrop({
@@ -490,6 +556,174 @@ local function CreateMainFrame()
         temperature = CreateSlider(mainFrame, "Temperature", "Temperature", "temperature", -1, 1, 0.01, 2, -355, db.filters),
     }
 
+    local emoteSep = mainFrame:CreateTexture(nil, "ARTWORK")
+    emoteSep:SetHeight(1)
+    emoteSep:SetPoint("TOPLEFT",  mainFrame, "TOPLEFT",  24, -415)
+    emoteSep:SetPoint("TOPRIGHT", mainFrame, "TOPRIGHT", -24, -415)
+    emoteSep:SetColorTexture(0.35, 0.35, 0.35, 0.7)
+
+    local emoteLabel = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    emoteLabel:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 24, -426)
+    emoteLabel:SetText("Emote for screenshot:")
+
+    local DD_W       = 260
+    local DD_ITEM_H  = 20
+    local DD_VISIBLE = 9
+    local POPUP_H    = DD_VISIBLE * DD_ITEM_H + 20
+
+    local ddBdTpl = BackdropTemplateMixin and "BackdropTemplate" or nil
+    local ddToggle = CreateFrame("Button", nil, mainFrame, ddBdTpl)
+    ddToggle:SetSize(DD_W, 28)
+    ddToggle:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 24, -444)
+    if ddToggle.SetBackdrop then
+        ddToggle:SetBackdrop({
+            bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+            edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+            tile = true,
+            tileSize = 16,
+            edgeSize = 16,
+            insets = { left = 4, right = 4, top = 4, bottom = 4 },
+        })
+    end
+    ddToggle:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+
+    local ddText = ddToggle:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    ddText:SetPoint("LEFT",  10, 0)
+    ddText:SetPoint("RIGHT", -32, 0)
+    ddText:SetJustifyH("LEFT")
+    ddText:SetText("None")
+
+    local ddArrowTexture = ddToggle:CreateTexture(nil, "OVERLAY")
+    ddArrowTexture:SetSize(24, 24)
+    ddArrowTexture:SetPoint("RIGHT", ddToggle, "RIGHT", -4, 0)
+    ddArrowTexture:SetTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up")
+
+    local ddIntercept = CreateFrame("Frame", nil, UIParent)
+    ddIntercept:SetAllPoints(UIParent)
+    ddIntercept:SetFrameStrata("DIALOG")
+    ddIntercept:SetFrameLevel(10)
+    ddIntercept:EnableMouse(true)
+    ddIntercept:Hide()
+
+    local ddPopup = CreateFrame("Frame", nil, UIParent, ddBdTpl)
+    ddPopup:SetSize(DD_W, POPUP_H)
+    ddPopup:SetFrameStrata("DIALOG")
+    ddPopup:SetFrameLevel(20)
+    ddPopup:Hide()
+    if ddPopup.SetBackdrop then
+        ddPopup:SetBackdrop({
+            bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+            edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+            tile = true,
+            tileSize = 16,
+            edgeSize = 16,
+            insets = { left = 5, right = 5, top = 5, bottom = 5 },
+        })
+    end
+
+    local ddScroll = CreateFrame("ScrollFrame", nil, ddPopup)
+    ddScroll:SetPoint("TOPLEFT",     ddPopup, "TOPLEFT",     6, -8)
+    ddScroll:SetPoint("BOTTOMRIGHT", ddPopup, "BOTTOMRIGHT", -24, 8)
+
+    local TOTAL_ITEMS = #EMOTES + 1
+    local ddContent = CreateFrame("Frame", nil, ddScroll)
+    ddContent:SetSize(DD_W - 30, TOTAL_ITEMS * DD_ITEM_H)
+    ddScroll:SetScrollChild(ddContent)
+
+    local ddScrollBar = CreateFrame("Slider", nil, ddPopup, "UIPanelScrollBarTemplate")
+    ddScrollBar:SetPoint("TOPRIGHT", ddPopup, "TOPRIGHT", -6, -23)
+    ddScrollBar:SetPoint("BOTTOMRIGHT", ddPopup, "BOTTOMRIGHT", -6, 23)
+    ddScrollBar:SetMinMaxValues(0, math.max(1, (TOTAL_ITEMS * DD_ITEM_H) - (DD_VISIBLE * DD_ITEM_H)))
+    ddScrollBar:SetValueStep(DD_ITEM_H)
+    ddScrollBar:SetValue(0)
+    ddScrollBar:SetWidth(16)
+
+    ddScroll:SetScript("OnVerticalScroll", function(self, offset)
+        ddScrollBar:SetValue(offset)
+    end)
+    ddScrollBar:SetScript("OnValueChanged", function(self, value)
+        ddScroll:SetVerticalScroll(value)
+    end)
+
+    local function CloseDD()
+        ddPopup:Hide()
+        ddIntercept:Hide()
+    end
+
+    local function ScrollToIndex(index)
+        local itemTop = (index - 1) * DD_ITEM_H
+        local viewTop = ddScroll:GetVerticalScroll()
+        local viewBot = viewTop + DD_VISIBLE * DD_ITEM_H
+        if itemTop < viewTop then
+            ddScroll:SetVerticalScroll(itemTop)
+        elseif itemTop + DD_ITEM_H > viewBot then
+            ddScroll:SetVerticalScroll(itemTop + DD_ITEM_H - DD_VISIBLE * DD_ITEM_H)
+        end
+    end
+
+    local function OpenDD()
+        ddPopup:ClearAllPoints()
+        ddPopup:SetPoint("TOPLEFT", ddToggle, "BOTTOMLEFT", 0, 0)
+        ddPopup:Show()
+        ddIntercept:Show()
+        
+        local maxRange = math.max(0, (TOTAL_ITEMS * DD_ITEM_H) - (DD_VISIBLE * DD_ITEM_H))
+        ddScrollBar:SetMinMaxValues(0, maxRange)
+
+        if db.selectedEmote then
+            for i, emote in ipairs(EMOTES) do
+                if emote.command == db.selectedEmote then
+                    ScrollToIndex(i + 1)
+                    break
+                end
+            end
+        else
+            ddScroll:SetVerticalScroll(0)
+        end
+    end
+
+    local function RefreshDDText()
+        ddText:SetText(GetEmoteLabelByCommand(db.selectedEmote))
+    end
+
+    ddIntercept:SetScript("OnMouseDown", CloseDD)
+    ddToggle:SetScript("OnClick", function()
+        if ddPopup:IsShown() then CloseDD() else OpenDD() end
+    end)
+    mainFrame:HookScript("OnHide", CloseDD)
+
+    ddPopup:EnableMouseWheel(true)
+    ddPopup:SetScript("OnMouseWheel", function(self, delta)
+        local cur = ddScroll:GetVerticalScroll()
+        local max = ddScroll:GetVerticalScrollRange()
+        ddScroll:SetVerticalScroll(math.max(0, math.min(max, cur - delta * DD_ITEM_H * 2)))
+    end)
+
+    local function MakeRow(index, label, command)
+        local btn = CreateFrame("Button", nil, ddContent)
+        btn:SetSize(DD_W - 30, DD_ITEM_H)
+        btn:SetPoint("TOPLEFT", 0, -(index - 1) * DD_ITEM_H)
+        btn:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+
+        local txt = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        txt:SetPoint("LEFT", 6, 0)
+        txt:SetText(label)
+
+        btn:SetScript("OnClick", function()
+            db.selectedEmote = command
+            RefreshDDText()
+            CloseDD()
+        end)
+    end
+
+    MakeRow(1, "None", nil)
+    for i, emote in ipairs(EMOTES) do
+        MakeRow(i + 1, emote.label, emote.command)
+    end
+
+    controls.refreshEmoteText = RefreshDDText
+    RefreshDDText()
+
     local note = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     note:SetPoint("BOTTOMLEFT", 24, 68)
     note:SetPoint("BOTTOMRIGHT", -24, 68)
@@ -527,10 +761,7 @@ local function ToggleMainFrame()
 end
 
 local function UpdateMinimapButtonPosition()
-    if not minimapButton or not db or not db.minimap or not Minimap then
-        return
-    end
-
+    if not minimapButton or not db or not db.minimap or not Minimap then return end
     local angle = math.rad(db.minimap.angle or defaults.minimap.angle)
     local radius = ((Minimap:GetWidth() or 140) / 2) + 10
     minimapButton:ClearAllPoints()
@@ -538,10 +769,7 @@ local function UpdateMinimapButtonPosition()
 end
 
 local function SaveMinimapButtonPosition()
-    if not db or not db.minimap or not Minimap or not UIParent or not GetCursorPosition then
-        return
-    end
-
+    if not db or not db.minimap or not Minimap or not UIParent or not GetCursorPosition then return end
     local centerX, centerY = Minimap:GetCenter()
     local cursorX, cursorY = GetCursorPosition()
     local scale = UIParent:GetEffectiveScale() or 1
@@ -549,19 +777,13 @@ local function SaveMinimapButtonPosition()
     cursorY = cursorY / scale
 
     local angle = math.deg(Atan2(cursorY - centerY, cursorX - centerX))
-    if angle < 0 then
-        angle = angle + 360
-    end
-
+    if angle < 0 then angle = angle + 360 end
     db.minimap.angle = Round(angle, 0)
     UpdateMinimapButtonPosition()
 end
 
 local function CreateMinimapButton()
-    if minimapButton or not Minimap then
-        return minimapButton
-    end
-
+    if minimapButton or not Minimap then return minimapButton end
     minimapButton = CreateFrame("Button", "ScreenShotCameraMinimapButton", Minimap)
     minimapButton:SetSize(32, 32)
     minimapButton:SetFrameStrata("MEDIUM")
@@ -585,9 +807,7 @@ local function CreateMinimapButton()
 
     minimapButton:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
     minimapButton:SetScript("OnClick", function(self)
-        if self.wasDragged then
-            return
-        end
+        if self.wasDragged then return end
         ToggleMainFrame()
     end)
     minimapButton:SetScript("OnDragStart", function(self)
@@ -597,15 +817,10 @@ local function CreateMinimapButton()
     minimapButton:SetScript("OnDragStop", function(self)
         self:SetScript("OnUpdate", nil)
         SaveMinimapButtonPosition()
-        After(0, function()
-            self.wasDragged = nil
-        end)
+        After(0, function() self.wasDragged = nil end)
     end)
     minimapButton:SetScript("OnEnter", function(self)
-        if not GameTooltip then
-            return
-        end
-
+        if not GameTooltip then return end
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
         GameTooltip:AddLine(ADDON_TITLE)
         GameTooltip:AddLine("Click: open or close the panel", 1, 1, 1)
@@ -613,9 +828,7 @@ local function CreateMinimapButton()
         GameTooltip:Show()
     end)
     minimapButton:SetScript("OnLeave", function()
-        if GameTooltip then
-            GameTooltip:Hide()
-        end
+        if GameTooltip then GameTooltip:Hide() end
     end)
 
     UpdateMinimapButtonPosition()
@@ -628,7 +841,6 @@ end
 
 local function HandleSlashCommand(message)
     message = string.lower(Trim(message or ""))
-
     if message == "on" then
         db.enabled = true
         ApplyCameraSettings()
@@ -678,7 +890,6 @@ end
 local function Initialize()
     _G[DB_GLOBAL] = ApplyDefaults(_G[DB_GLOBAL] or {}, defaults)
     db = _G[DB_GLOBAL]
-    db.pitchAngle = nil
 
     CreateMainFrame()
     RegisterSettingsPanel()
