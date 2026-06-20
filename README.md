@@ -9,6 +9,7 @@ By adjusting camera offsets and color overlays, you can create cinematic charact
 * **Integrated Photo Filters:** Fine-tune your scene with real-time, overlay-based adjustments for brightness, contrast, and color temperature.
 * **Automated Clean Capture:** The built-in screenshot feature automatically hides the entire user interface, captures the image, and restores the UI seamlessly.
 * **Minimap Shortcut:** Includes a draggable spyglass icon on the minimap for quick access to the configuration panel.
+* **Emote performind:** Includes a list of emote that can be performed during the screenshot
 
 
 ## In-Game Commands
