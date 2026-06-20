@@ -1,0 +1,8 @@
+## Interface: 120000
+## Title: ScreenShot Camera
+## Notes: Simple camera framing controls for cleaner screenshots.
+## Author: Luca + Codex
+## Version: 0.1.0
+## SavedVariables: ScreenShotCameraDB
+
+ScreenShotCamera.lua
