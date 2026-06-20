@@ -40,6 +40,8 @@ The configuration window features five primary adjustment sliders managed inside
 `World of Warcraft/\_retail\_/Interface/AddOns/` (or your respective game version directory, such as `\_classic\_`).
 3. Ensure the addon is enabled in your character selection screen, then log in to configure your camera.
 
+![alt text](https://imgur.com/a/91gYi2o)
+
 
 ## Credits
 
