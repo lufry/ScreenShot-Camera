@@ -1,6 +1,6 @@
 # ScreenShot Camera
 
-ScreenShot Camera is a lightweight World of Warcraft addon designed to help players capture screenshots from custom framing angles with real-time post-processing adjustments. By adjusting camera offsets and color overlays, you can create cinematic character showcases and environmental captures directly in-game.
+By adjusting camera offsets and color overlays, you can create cinematic character showcases and environmental captures directly in-game.
 
 
 ## Features
