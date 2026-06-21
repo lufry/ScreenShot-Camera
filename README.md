@@ -9,7 +9,7 @@ By adjusting camera offsets and color overlays, you can create cinematic charact
 * **Integrated Photo Filters:** Fine-tune your scene with real-time, overlay-based adjustments for brightness, contrast, and color temperature.
 * **Automated Clean Capture:** The built-in screenshot feature automatically hides the entire user interface, captures the image, and restores the UI seamlessly.
 * **Minimap Shortcut:** Includes a draggable spyglass icon on the minimap for quick access to the configuration panel.
-* **Emote:** Includes a list of emote that can be performed during the screenshot
+* **Emote:** Includes a list of emotes that can be performed during the screenshot.
 
 
 ## In-Game Commands
@@ -32,6 +32,7 @@ The configuration window features five primary adjustment sliders managed inside
 * **Brightness:** Lightens or darkens the screen using a transparent color overlay.
 * **Contrast:** Tightens or widens the dynamic visual range via overlay tinting approximations.
 * **Temperature:** Warms the image with golden tones or cools it with blue tones to simulate different times of day or weather conditions.
+* **Emote:** First select an emote to perform. When you'll take the screenshot the character will perform the emote, hide the WoW UI and after 1.5s the screenshot will be saved in your WoW directory.
 
 
 ## Installation
