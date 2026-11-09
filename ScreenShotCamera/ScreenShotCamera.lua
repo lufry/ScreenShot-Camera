@@ -3,6 +3,15 @@ local addonName = ...
 local ADDON_TITLE = "ScreenShot Camera"
 local DB_GLOBAL = "ScreenShotCameraDB"
 
+-- Forever is Camelot, not Classic and not WOW_PROJECT_MAINLINE.
+-- Pin the executable build as well as the TOC interface, even if the user
+-- enables "Load out of date AddOns" on another client.
+local version, build, _, interface = GetBuildInfo()
+if WOW_PROJECT_ID ~= 18 or version ~= "1.60.1" or tonumber(build) ~= 70862 or interface ~= 16001 then
+    print(ADDON_TITLE .. ": requires WoW Forever 1.60.1.70862 (interface 16001).")
+    return
+end
+
 local defaults = {
     enabled = false,
     horizontalOffset = 0,
@@ -40,116 +49,32 @@ local filterTextures = {}
 local controls = {}
 local RefreshControlState
 
-local EMOTES = {
-    { label = "Angry",            command = "ANGRY" },
-    { label = "Apologize",        command = "APOLOGIZE" },
-    { label = "Applaud",          command = "APPLAUD" },
-    { label = "Attack Target",    command = "ATTACKTARGET" },
-    { label = "Bashful",          command = "BASHFUL" },
-    { label = "Beg",              command = "BEG" },
-    { label = "Blame",            command = "BLAME" },
-    { label = "Blush",            command = "BLUSH" },
-    { label = "Boggle",           command = "BOGGLE" },
-    { label = "Boop",             command = "BOOP" },
-    { label = "Bored",            command = "BORED" },
-    { label = "Bow",              command = "BOW" },
-    { label = "Bye",              command = "BYE" },
-    { label = "Cackle",           command = "CACKLE" },
-    { label = "Charge",           command = "CHARGE" },
-    { label = "Cheer",            command = "CHEER" },
-    { label = "Chicken",          command = "CHICKEN" },
-    { label = "Chuckle",          command = "CHUCKLE" },
-    { label = "Clap",             command = "CLAP" },
-    { label = "Commend",          command = "COMMEND" },
-    { label = "Confused",         command = "CONFUSED" },
-    { label = "Congratulate",     command = "CONGRATULATE" },
-    { label = "Cower",            command = "COWER" },
-    { label = "Cry",              command = "CRY" },
-    { label = "Curious",          command = "CURIOUS" },
-    { label = "Curtsey",          command = "CURTSEY" },
-    { label = "Dance",            command = "DANCE" },
-    { label = "Disagree",         command = "DISAGREE" },
-    { label = "Doubt",            command = "DOUBT" },
-    { label = "Drink",            command = "DRINK" },
-    { label = "Eat",              command = "EAT" },
-    { label = "Flee",             command = "FLEE" },
-    { label = "Flex",             command = "FLEX" },
-    { label = "Flirt",            command = "FLIRT" },
-    { label = "Follow Me",        command = "FOLLOWME" },
-    { label = "For the Alliance", command = "FORTHEALLIANCE" },
-    { label = "For the Horde",    command = "FORTHEHORDE" },
-    { label = "Gasp",             command = "GASP" },
-    { label = "Giggle",           command = "GIGGLE" },
-    { label = "Gloat",            command = "GLOAT" },
-    { label = "Golf Clap",        command = "GOLFCLAP" },
-    { label = "Greet",            command = "GREET" },
-    { label = "Grovel",           command = "GROVEL" },
-    { label = "Growl",            command = "GROWL" },
-    { label = "Guffaw",           command = "GUFFAW" },
-    { label = "Hail",             command = "HAIL" },
-    { label = "Heal Me",          command = "HELPME" },
-    { label = "Hello",            command = "HELLO" },
-    { label = "Help Me",          command = "HELPME" },
-    { label = "Huzzah",           command = "HUZZAH" },
-    { label = "Impressed",        command = "IMPRESSED" },
-    { label = "Incoming",         command = "INCOMING" },
-    { label = "Insult",           command = "INSULT" },
-    { label = "Kiss",             command = "KISS" },
-    { label = "Kneel",            command = "KNEEL" },
-    { label = "Laugh",            command = "LAUGH" },
-    { label = "Lay Down",         command = "LAYDOWN" },
-    { label = "Lost",             command = "LOST" },
-    { label = "Magnificent",      command = "MAGNIFICENT" },
-    { label = "Mercy",            command = "MERCY" },
-    { label = "Mount Special",    command = "MOUNTSPECIAL" },
-    { label = "Mourn",            command = "MOURN" },
-    { label = "No",               command = "NO" },
-    { label = "Nod",              command = "NOD" },
-    { label = "Object",           command = "OBJECT" },
-    { label = "OOM",              command = "OOM" },
-    { label = "Oops",             command = "OOPS" },
-    { label = "Open Fire",        command = "OPENFIRE" },
-    { label = "Plead",            command = "PLEAD" },
-    { label = "Point",            command = "POINT" },
-    { label = "Ponder",           command = "PONDER" },
-    { label = "Pray",             command = "PRAY" },
-    { label = "Puzzled",          command = "PUZZLED" },
-    { label = "Quack",            command = "QUACK" },
-    { label = "Rasp",             command = "RASP" },
-    { label = "Read",             command = "READ" },
-    { label = "Roar",             command = "ROAR" },
-    { label = "ROFL",             command = "ROFL" },
-    { label = "Rude",             command = "RUDE" },
-    { label = "Salute",           command = "SALUTE" },
-    { label = "Scared",           command = "SCARED" },
-    { label = "Shout",            command = "SHOUT" },
-    { label = "Shrug",            command = "SHRUG" },
-    { label = "Shy",              command = "SHY" },
-    { label = "Sigh",             command = "SIGH" },
-    { label = "Silly",            command = "SILLY" },
-    { label = "Sing",             command = "SING" },
-    { label = "Sit",              command = "SIT" },
-    { label = "Sleep",            command = "SLEEP" },
-    { label = "Sniff",            command = "SNIFF" },
-    { label = "Stand",            command = "STAND" },
-    { label = "Surrender",        command = "SURRENDER" },
-    { label = "Talk",             command = "TALK" },
-    { label = "Talk (Excited)",   command = "TALKEX" },
-    { label = "Talk (Question)",  command = "TALKQ" },
-    { label = "Taunt",            command = "TAUNT" },
-    { label = "Thank",            command = "THANK" },
-    { label = "Threaten",         command = "THREATEN" },
-    { label = "Train",            command = "TRAIN" },
-    { label = "Victory",          command = "VICTORY" },
-    { label = "Violin",           command = "VIOLIN" },
-    { label = "Wait",             command = "WAIT" },
-    { label = "Wave",             command = "WAVE" },
-    { label = "Welcome",          command = "WELCOME" },
-    { label = "Whistle",          command = "WHISTLE" },
-    { label = "Whoa",             command = "WHOA" },
-    { label = "Yawn",             command = "YAWN" },
-    { label = "You're Welcome",   command = "YW" },
-}
+local EMOTES = {}
+local emoteByCommand = {}
+local pendingShot
+local cameraPending = false
+local cameraError = false
+
+local function BuildEmoteList()
+    wipe(EMOTES)
+    wipe(emoteByCommand)
+    local labels = {}
+    for index = 1, MAXEMOTEINDEX do
+        local token = _G["EMOTE" .. index .. "_TOKEN"]
+        if token and not labels[token] then
+            labels[token] = _G["EMOTE" .. index .. "_CMD1"]
+        end
+    end
+    -- The exact animated Emote submenu beside chat, in the client's order.
+    -- TextEmoteSpeechList belongs to the separate voice submenu.
+    for _, token in ipairs(EmoteList) do
+        if not emoteByCommand[token] then
+            local entry = { command = token, label = labels[token] or token }
+            EMOTES[#EMOTES + 1] = entry
+            emoteByCommand[token] = entry
+        end
+    end
+end
 
 local function DeepCopy(value)
     if type(value) ~= "table" then
@@ -164,7 +89,7 @@ end
 
 local function ApplyDefaults(target, source)
     for key, value in pairs(source) do
-        if target[key] == nil then
+        if type(target[key]) ~= type(value) then
             target[key] = DeepCopy(value)
         elseif type(target[key]) == "table" and type(value) == "table" then
             ApplyDefaults(target[key], value)
@@ -175,6 +100,7 @@ end
 
 local function Clamp(value, minValue, maxValue)
     value = tonumber(value) or 0
+    if value ~= value then value = 0 end -- Reject NaN in damaged saved data.
     if value < minValue then
         return minValue
     elseif value > maxValue then
@@ -192,61 +118,15 @@ local function FormatNumber(value, decimals)
     return string.format("%." .. tostring(decimals or 1) .. "f", value)
 end
 
-local function Atan2(y, x)
-    if math.atan2 then
-        return math.atan2(y, x)
-    elseif x > 0 then
-        return math.atan(y / x)
-    elseif x < 0 and y >= 0 then
-        return math.atan(y / x) + math.pi
-    elseif x < 0 and y < 0 then
-        return math.atan(y / x) - math.pi
-    elseif x == 0 and y > 0 then
-        return math.pi / 2
-    elseif x == 0 and y < 0 then
-        return -math.pi / 2
-    end
-    return 0
-end
-
-local function Trim(value)
-    if strtrim then
-        return strtrim(value)
-    end
-    return tostring(value or ""):match("^%s*(.-)%s*$")
-end
-
-local function After(delay, callback)
-    if C_Timer and C_Timer.After then
-        C_Timer.After(delay, callback)
-    else
-        callback()
-    end
-end
-
 local function ReadCVar(cvar)
-    if C_CVar and C_CVar.GetCVar then
-        local ok, value = pcall(C_CVar.GetCVar, cvar)
-        if ok then return value end
-    end
-    if GetCVar then
-        local ok, value = pcall(GetCVar, cvar)
-        if ok then return value end
-    end
+    local ok, value = pcall(C_CVar.GetCVar, cvar)
+    if ok then return value end
 end
 
 local function WriteCVar(cvar, value)
     if value == nil then return false end
-    local textValue = tostring(value)
-    if C_CVar and C_CVar.SetCVar then
-        local ok, result = pcall(C_CVar.SetCVar, cvar, textValue)
-        if ok and result ~= false then return true end
-    end
-    if SetCVar then
-        local ok, result = pcall(SetCVar, cvar, textValue, addonName)
-        if ok and result ~= false then return true end
-    end
-    return false
+    local ok, success = pcall(C_CVar.SetCVar, cvar, tostring(value))
+    return ok and success == true
 end
 
 local function CaptureOriginals()
@@ -262,11 +142,18 @@ local function CaptureOriginals()
 end
 
 local function RestoreOriginals()
-    if not db or not db.originals then return end
-    for cvar, value in pairs(db.originals) do
-        WriteCVar(cvar, value)
+    if not db then return end
+    -- Only restore our own CVars. Keep failed restores for the next safe retry.
+    for _, cvar in ipairs(controlledCVars) do
+        local value = db.originals[cvar]
+        if value ~= nil then
+            if WriteCVar(cvar, value) then
+                db.originals[cvar] = nil
+            else
+                cameraError = true
+            end
+        end
     end
-    db.originals = {}
 end
 
 local function SetOverlayColor(texture, r, g, b, alpha)
@@ -275,27 +162,20 @@ local function SetOverlayColor(texture, r, g, b, alpha)
         texture:Hide()
         return
     end
-    if texture.SetColorTexture then
-        texture:SetColorTexture(r, g, b, 1)
-    else
-        texture:SetTexture(r, g, b, 1)
-    end
+    texture:SetColorTexture(r, g, b, 1)
     texture:SetAlpha(alpha)
     texture:Show()
 end
 
 local function EnsureFilterFrame()
     if filterFrame then return filterFrame end
-    local parent = WorldFrame or UIParent
+    local parent = WorldFrame
     filterFrame = CreateFrame("Frame", "ScreenShotCameraFilterFrame", parent)
     filterFrame:SetFrameStrata("LOW")
     filterFrame:SetFrameLevel(0)
     filterFrame:EnableMouse(false)
-    if UIParent then
-        filterFrame:SetAllPoints(UIParent)
-    else
-        filterFrame:SetAllPoints(parent)
-    end
+    filterFrame:SetAllPoints(WorldFrame)
+
     for _, name in ipairs({ "contrast", "temperature", "brightness" }) do
         local texture = filterFrame:CreateTexture(nil, "OVERLAY")
         texture:SetAllPoints(filterFrame)
@@ -347,43 +227,88 @@ local function ApplyFilterSettings()
     end
 end
 
-local function TakeCleanScreenshot()
-    if not Screenshot then return end
-    local uiWasShown = UIParent and UIParent:IsShown()
-    local panelWasShown = mainFrame and mainFrame:IsShown()
+local function FinishScreenshot(message)
+    local shot = pendingShot
+    if not shot then return end
+    shot.cancelled = true
+    if shot.captureTimer then shot.captureTimer:Cancel() end
+    if shot.timeout then shot.timeout:Cancel() end
+    if message then
+        print(ADDON_TITLE .. ": " .. message)
+    end
+    if shot.uiHidden then
+        -- UIParent contains protected children: retry after combat if necessary.
+        local ok = pcall(UIParent.Show, UIParent)
+        if not ok or not UIParent:IsShown() then
+            RefreshControlState()
+            return
+        end
+        shot.uiHidden = false
+    end
+    pendingShot = nil
+    RefreshControlState()
+end
 
-    if UIParent and uiWasShown then
-        local ok = pcall(UIParent.Hide, UIParent)
-        if not ok or UIParent:IsShown() then
-            print(ADDON_TITLE .. ": cannot hide the UI right now.")
-            Screenshot()
+local function TakeCleanScreenshot()
+    if pendingShot then return end
+    if InCombatLockdown() then
+        print(ADDON_TITLE .. ": clean screenshots are unavailable during combat.")
+        return
+    end
+
+    -- Do not execute stale commands imported from older versions.
+    if db.selectedEmote and not emoteByCommand[db.selectedEmote] then
+        db.selectedEmote = nil
+    end
+    if db.selectedEmote then
+        local ok, success = pcall(C_ChatInfo.PerformEmote, db.selectedEmote)
+        if not ok or not success then
+            print(ADDON_TITLE .. ": the selected emote cannot be performed right now.")
             return
         end
     end
 
-    local function doScreenshotAndRestore()
-        Screenshot()
-        After(1.0, function()
-            if UIParent and uiWasShown then
-                pcall(UIParent.Show, UIParent)
-            end
-            if mainFrame and panelWasShown then
-                mainFrame:Show()
-                RefreshControlState()
-            end
-        end)
+    local shot = { uiHidden = false }
+    pendingShot = shot
+    if UIParent:IsShown() then
+        -- Record ownership before hiding, so an error cannot strand the UI.
+        shot.uiHidden = true
+        local ok = pcall(UIParent.Hide, UIParent)
+        if not ok or UIParent:IsShown() then
+            FinishScreenshot("cannot hide the UI right now; screenshot cancelled.")
+            return
+        end
     end
-
-    if db.selectedEmote then
-        DoEmote(db.selectedEmote)
-        After(1.5, doScreenshotAndRestore)
-    else
-        After(0.1, doScreenshotAndRestore)
-    end
+    RefreshControlState()
+    shot.timeout = C_Timer.NewTimer(10, function()
+        if pendingShot == shot then
+            FinishScreenshot("screenshot timed out; restoring the UI.")
+        end
+    end)
+    shot.captureTimer = C_Timer.NewTimer(db.selectedEmote and 1.5 or 0.2, function()
+        if pendingShot ~= shot or shot.cancelled then return end
+        if InCombatLockdown() then
+            FinishScreenshot("screenshot cancelled on entering combat.")
+            return
+        end
+        if UIParent:IsShown() then
+            FinishScreenshot("the UI was reopened; screenshot cancelled.")
+            return
+        end
+        shot.requested = true
+        local ok = pcall(Screenshot)
+        if not ok then FinishScreenshot("screenshot failed; restoring the UI.") end
+    end)
 end
 
 local function ApplyCameraSettings()
     if not db then return end
+    if InCombatLockdown() then
+        cameraPending = true
+        return
+    end
+    cameraPending = false
+    cameraError = false
     db.horizontalOffset = Clamp(db.horizontalOffset, -10, 10)
     db.verticalOffset = Clamp(db.verticalOffset, 0, 1)
 
@@ -398,47 +323,44 @@ local function ApplyCameraSettings()
     local vertical = Round(db.verticalOffset, 2)
     local usesDynamicPitch = vertical > 0.001
 
-    WriteCVar("test_cameraOverShoulder", horizontal)
-    WriteCVar("test_cameraDynamicPitch", usesDynamicPitch and 1 or 0)
-    WriteCVar("test_cameraDynamicPitchBaseFovPad", vertical)
-    WriteCVar("test_cameraDynamicPitchBaseFovPadFlying", vertical)
-
-    if math.abs(horizontal) > 0.001 or usesDynamicPitch then
-        WriteCVar("CameraKeepCharacterCentered", 0)
-    end
-    if math.abs(horizontal) > 0.001 then
-        WriteCVar("CameraReduceUnexpectedMovement", 0)
-    end
-    ApplyFilterSettings()
-end
-
-local function GetEmoteLabelByCommand(command)
-    if not command then return "None" end
-    for _, emote in ipairs(EMOTES) do
-        if emote.command == command then
-            return emote.label
+    local desired = {
+        test_cameraOverShoulder = horizontal,
+        test_cameraDynamicPitch = usesDynamicPitch and 1 or 0,
+        test_cameraDynamicPitchBaseFovPad = vertical,
+        test_cameraDynamicPitchBaseFovPadFlying = vertical,
+        CameraKeepCharacterCentered = (math.abs(horizontal) > 0.001 or usesDynamicPitch)
+            and 0 or db.originals.CameraKeepCharacterCentered,
+        CameraReduceUnexpectedMovement = math.abs(horizontal) > 0.001
+            and 0 or db.originals.CameraReduceUnexpectedMovement,
+    }
+    for _, cvar in ipairs(controlledCVars) do
+        -- Never change a CVar unless we have a recoverable original value.
+        if db.originals[cvar] == nil or not WriteCVar(cvar, desired[cvar]) then
+            cameraError = true
         end
     end
-    return "None"
+
+    ApplyFilterSettings()
 end
 
 RefreshControlState = function()
     if not mainFrame or not db then return end
-    if controls.enable then
-        controls.enable:SetChecked(db.enabled)
+    controls.enable:SetChecked(db.enabled)
+    local editable = not InCombatLockdown() and not pendingShot
+    controls.enable:SetEnabled(editable)
+    controls.reset:SetEnabled(editable)
+    controls.screenshot:SetEnabled(editable)
+    controls.emote:SetEnabled(editable)
+    for _, slider in pairs(controls.sliders) do
+        slider:SetEnabled(db.enabled and editable)
     end
-    for _, slider in pairs(controls.sliders or {}) do
-        if slider.SetEnabled then
-            slider:SetEnabled(db.enabled)
-        end
-        slider:SetAlpha(db.enabled and 1 or 0.45)
-    end
-    if controls.status then
-        controls.status:SetText(db.enabled and "Camera active" or "Camera inactive")
-    end
-    if controls.refreshEmoteText then
-        controls.refreshEmoteText()
-    end
+    local status = db.enabled and "Camera active" or "Camera inactive"
+    if cameraError then status = "Some camera settings unavailable" end
+    if cameraPending then status = "Camera changes pending" end
+    if InCombatLockdown() then status = "Controls paused in combat" end
+    if pendingShot then status = "Capture in progress" end
+    controls.status:SetText(status)
+    controls.emote:GenerateMenu()
 end
 
 local function SaveWindowPosition()
@@ -451,27 +373,22 @@ end
 
 local function CreateSlider(parent, name, label, key, minValue, maxValue, step, decimals, yOffset, owner)
     owner = owner or db
-    local sliderName = "ScreenShotCamera" .. name .. "Slider"
-    local slider = CreateFrame("Slider", sliderName, parent, "OptionsSliderTemplate")
+    local slider = CreateFrame("Frame", "ScreenShotCamera" .. name .. "Slider", parent,
+        "MinimalSliderWithSteppersTemplate")
     slider:SetPoint("TOPLEFT", parent, "TOPLEFT", 26, yOffset)
     slider:SetPoint("RIGHT", parent, "RIGHT", -26, 0)
-    slider:SetMinMaxValues(minValue, maxValue)
-    slider:SetValueStep(step)
-    if slider.SetObeyStepOnDrag then
-        slider:SetObeyStepOnDrag(true)
-    end
-    _G[sliderName .. "Low"]:SetText(tostring(minValue))
-    _G[sliderName .. "High"]:SetText(tostring(maxValue))
-
-    local title = _G[sliderName .. "Text"]
-    title:SetText(label .. ": " .. FormatNumber(owner[key], decimals))
-    slider:SetScript("OnValueChanged", function(self, value)
-        value = Round(value, decimals)
-        owner[key] = value
-        title:SetText(label .. ": " .. FormatNumber(value, decimals))
+    slider:SetHeight(40)
+    local Label = MinimalSliderWithSteppersMixin.Label
+    slider:Init(owner[key], minValue, maxValue, (maxValue - minValue) / step, {
+        [Label.Top] = function(value) return label .. ": " .. FormatNumber(value, decimals) end,
+        [Label.Min] = function() return tostring(minValue) end,
+        [Label.Max] = function() return tostring(maxValue) end,
+    })
+    slider:RegisterCallback(MinimalSliderWithSteppersMixin.Event.OnValueChanged, function(_, value)
+        owner[key] = Round(Clamp(value, minValue, maxValue), decimals)
         ApplyCameraSettings()
-    end)
-    slider:SetValue(owner[key])
+        RefreshControlState()
+    end, slider)
     return slider
 end
 
@@ -491,19 +408,20 @@ local function ResetSettings()
         controls.sliders.contrast:SetValue(db.filters.contrast)
         controls.sliders.temperature:SetValue(db.filters.temperature)
     end
-    if controls.refreshEmoteText then
-        controls.refreshEmoteText()
-    end
     ApplyCameraSettings()
     RefreshControlState()
 end
 
 local function CreateMainFrame()
     if mainFrame then return mainFrame end
-    local template = BackdropTemplateMixin and "BackdropTemplate" or nil
-    mainFrame = CreateFrame("Frame", "ScreenShotCameraFrame", UIParent, template)
-    mainFrame:SetSize(430, 560)
-    mainFrame:SetPoint(db.window.point or "CENTER", UIParent, db.window.point or "CENTER", db.window.x or 0, db.window.y or 0)
+    mainFrame = CreateFrame("Frame", "ScreenShotCameraFrame", UIParent, "ButtonFrameTemplate")
+    ButtonFrameTemplate_HidePortrait(mainFrame)
+    ButtonFrameTemplate_HideAttic(mainFrame)
+    mainFrame:SetTitle(ADDON_TITLE .. " - Forever")
+    mainFrame.Inset:SetPoint("BOTTOMRIGHT", mainFrame, "BOTTOMRIGHT", -6, 92)
+    mainFrame:SetSize(460, 610)
+    mainFrame:SetClampedToScreen(true)
+    mainFrame:SetPoint(db.window.point, UIParent, db.window.point, db.window.x, db.window.y)
     mainFrame:SetFrameStrata("DIALOG")
     mainFrame:SetMovable(true)
     mainFrame:EnableMouse(true)
@@ -517,26 +435,8 @@ local function CreateMainFrame()
 
     tinsert(UISpecialFrames, "ScreenShotCameraFrame")
 
-    if mainFrame.SetBackdrop then
-        mainFrame:SetBackdrop({
-            bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-            edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-            tile = true,
-            tileSize = 32,
-            edgeSize = 32,
-            insets = { left = 11, right = 12, top = 12, bottom = 11 },
-        })
-    end
-
-    local title = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOPLEFT", 20, -18)
-    title:SetText(ADDON_TITLE)
-
-    local close = CreateFrame("Button", nil, mainFrame, "UIPanelCloseButton")
-    close:SetPoint("TOPRIGHT", -6, -6)
-
     local enable = CreateFrame("CheckButton", "ScreenShotCameraEnableCheck", mainFrame, "UICheckButtonTemplate")
-    enable:SetPoint("TOPLEFT", 22, -52)
+    enable:SetPoint("TOPLEFT", 22, -38)
     _G[enable:GetName() .. "Text"]:SetText("Enable addon")
     enable:SetScript("OnClick", function(self)
         db.enabled = self:GetChecked() and true or false
@@ -546,13 +446,13 @@ local function CreateMainFrame()
     controls.enable = enable
 
     controls.status = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    controls.status:SetPoint("TOPRIGHT", -24, -62)
+    controls.status:SetPoint("TOPLEFT", 28, -74)
 
     controls.sliders = {
         horizontal = CreateSlider(mainFrame, "Horizontal", "Horizontal offset (X)", "horizontalOffset", -10, 10, 0.1, 1, -105),
-        vertical = CreateSlider(mainFrame, "Vertical", "Vertical angle", "verticalOffset", 0, 1, 0.01, 2, -165),
+        vertical = CreateSlider(mainFrame, "Vertical", "Dynamic pitch", "verticalOffset", 0, 1, 0.01, 2, -165),
         brightness = CreateSlider(mainFrame, "Brightness", "Brightness", "brightness", -1, 1, 0.01, 2, -235, db.filters),
-        contrast = CreateSlider(mainFrame, "Contrast", "Contrast", "contrast", -1, 1, 0.01, 2, -295, db.filters),
+        contrast = CreateSlider(mainFrame, "Contrast", "Shade / haze", "contrast", -1, 1, 0.01, 2, -295, db.filters),
         temperature = CreateSlider(mainFrame, "Temperature", "Temperature", "temperature", -1, 1, 0.01, 2, -355, db.filters),
     }
 
@@ -566,184 +466,44 @@ local function CreateMainFrame()
     emoteLabel:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 24, -426)
     emoteLabel:SetText("Emote for screenshot:")
 
-    local DD_W       = 260
-    local DD_ITEM_H  = 20
-    local DD_VISIBLE = 9
-    local POPUP_H    = DD_VISIBLE * DD_ITEM_H + 20
-
-    local ddBdTpl = BackdropTemplateMixin and "BackdropTemplate" or nil
-    local ddToggle = CreateFrame("Button", nil, mainFrame, ddBdTpl)
-    ddToggle:SetSize(DD_W, 28)
-    ddToggle:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 24, -444)
-    if ddToggle.SetBackdrop then
-        ddToggle:SetBackdrop({
-            bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-            edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-            tile = true,
-            tileSize = 16,
-            edgeSize = 16,
-            insets = { left = 4, right = 4, top = 4, bottom = 4 },
-        })
-    end
-    ddToggle:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
-
-    local ddText = ddToggle:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    ddText:SetPoint("LEFT",  10, 0)
-    ddText:SetPoint("RIGHT", -32, 0)
-    ddText:SetJustifyH("LEFT")
-    ddText:SetText("None")
-
-    local ddArrowTexture = ddToggle:CreateTexture(nil, "OVERLAY")
-    ddArrowTexture:SetSize(24, 24)
-    ddArrowTexture:SetPoint("RIGHT", ddToggle, "RIGHT", -4, 0)
-    ddArrowTexture:SetTexture("Interface\\ChatFrame\\UI-ChatIcon-ScrollDown-Up")
-
-    local ddIntercept = CreateFrame("Frame", nil, UIParent)
-    ddIntercept:SetAllPoints(UIParent)
-    ddIntercept:SetFrameStrata("DIALOG")
-    ddIntercept:SetFrameLevel(10)
-    ddIntercept:EnableMouse(true)
-    ddIntercept:Hide()
-
-    local ddPopup = CreateFrame("Frame", nil, UIParent, ddBdTpl)
-    ddPopup:SetSize(DD_W, POPUP_H)
-    ddPopup:SetFrameStrata("DIALOG")
-    ddPopup:SetFrameLevel(20)
-    ddPopup:Hide()
-    if ddPopup.SetBackdrop then
-        ddPopup:SetBackdrop({
-            bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-            edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-            tile = true,
-            tileSize = 16,
-            edgeSize = 16,
-            insets = { left = 5, right = 5, top = 5, bottom = 5 },
-        })
-    end
-
-    local ddScroll = CreateFrame("ScrollFrame", nil, ddPopup)
-    ddScroll:SetPoint("TOPLEFT",     ddPopup, "TOPLEFT",     6, -8)
-    ddScroll:SetPoint("BOTTOMRIGHT", ddPopup, "BOTTOMRIGHT", -24, 8)
-
-    local TOTAL_ITEMS = #EMOTES + 1
-    local ddContent = CreateFrame("Frame", nil, ddScroll)
-    ddContent:SetSize(DD_W - 30, TOTAL_ITEMS * DD_ITEM_H)
-    ddScroll:SetScrollChild(ddContent)
-
-    local ddScrollBar = CreateFrame("Slider", nil, ddPopup, "UIPanelScrollBarTemplate")
-    ddScrollBar:SetPoint("TOPRIGHT", ddPopup, "TOPRIGHT", -6, -23)
-    ddScrollBar:SetPoint("BOTTOMRIGHT", ddPopup, "BOTTOMRIGHT", -6, 23)
-    ddScrollBar:SetMinMaxValues(0, math.max(1, (TOTAL_ITEMS * DD_ITEM_H) - (DD_VISIBLE * DD_ITEM_H)))
-    ddScrollBar:SetValueStep(DD_ITEM_H)
-    ddScrollBar:SetValue(0)
-    ddScrollBar:SetWidth(16)
-
-    ddScroll:SetScript("OnVerticalScroll", function(self, offset)
-        ddScrollBar:SetValue(offset)
-    end)
-    ddScrollBar:SetScript("OnValueChanged", function(self, value)
-        ddScroll:SetVerticalScroll(value)
-    end)
-
-    local function CloseDD()
-        ddPopup:Hide()
-        ddIntercept:Hide()
-    end
-
-    local function ScrollToIndex(index)
-        local itemTop = (index - 1) * DD_ITEM_H
-        local viewTop = ddScroll:GetVerticalScroll()
-        local viewBot = viewTop + DD_VISIBLE * DD_ITEM_H
-        if itemTop < viewTop then
-            ddScroll:SetVerticalScroll(itemTop)
-        elseif itemTop + DD_ITEM_H > viewBot then
-            ddScroll:SetVerticalScroll(itemTop + DD_ITEM_H - DD_VISIBLE * DD_ITEM_H)
+    local dropdown = CreateFrame("DropdownButton", "ScreenShotCameraEmoteDropdown", mainFrame,
+        "WowStyle1DropdownTemplate")
+    dropdown:SetWidth(280)
+    dropdown:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 26, -449)
+    dropdown:SetDefaultText(NONE)
+    dropdown:SetupMenu(function(_, rootDescription)
+        rootDescription:SetScrollMode(260)
+        local function IsSelected(command) return db.selectedEmote == command end
+        local function Select(command) db.selectedEmote = command end
+        rootDescription:CreateRadio(NONE, IsSelected, Select, nil)
+        for _, emote in ipairs(EMOTES) do
+            rootDescription:CreateRadio(emote.label, IsSelected, Select, emote.command)
         end
-    end
-
-    local function OpenDD()
-        ddPopup:ClearAllPoints()
-        ddPopup:SetPoint("TOPLEFT", ddToggle, "BOTTOMLEFT", 0, 0)
-        ddPopup:Show()
-        ddIntercept:Show()
-        
-        local maxRange = math.max(0, (TOTAL_ITEMS * DD_ITEM_H) - (DD_VISIBLE * DD_ITEM_H))
-        ddScrollBar:SetMinMaxValues(0, maxRange)
-
-        if db.selectedEmote then
-            for i, emote in ipairs(EMOTES) do
-                if emote.command == db.selectedEmote then
-                    ScrollToIndex(i + 1)
-                    break
-                end
-            end
-        else
-            ddScroll:SetVerticalScroll(0)
-        end
-    end
-
-    local function RefreshDDText()
-        ddText:SetText(GetEmoteLabelByCommand(db.selectedEmote))
-    end
-
-    ddIntercept:SetScript("OnMouseDown", CloseDD)
-    ddToggle:SetScript("OnClick", function()
-        if ddPopup:IsShown() then CloseDD() else OpenDD() end
     end)
-    mainFrame:HookScript("OnHide", CloseDD)
-
-    ddPopup:EnableMouseWheel(true)
-    ddPopup:SetScript("OnMouseWheel", function(self, delta)
-        local cur = ddScroll:GetVerticalScroll()
-        local max = ddScroll:GetVerticalScrollRange()
-        ddScroll:SetVerticalScroll(math.max(0, math.min(max, cur - delta * DD_ITEM_H * 2)))
-    end)
-
-    local function MakeRow(index, label, command)
-        local btn = CreateFrame("Button", nil, ddContent)
-        btn:SetSize(DD_W - 30, DD_ITEM_H)
-        btn:SetPoint("TOPLEFT", 0, -(index - 1) * DD_ITEM_H)
-        btn:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
-
-        local txt = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        txt:SetPoint("LEFT", 6, 0)
-        txt:SetText(label)
-
-        btn:SetScript("OnClick", function()
-            db.selectedEmote = command
-            RefreshDDText()
-            CloseDD()
-        end)
-    end
-
-    MakeRow(1, "None", nil)
-    for i, emote in ipairs(EMOTES) do
-        MakeRow(i + 1, emote.label, emote.command)
-    end
-
-    controls.refreshEmoteText = RefreshDDText
-    RefreshDDText()
+    controls.emote = dropdown
 
     local note = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    note:SetPoint("BOTTOMLEFT", 24, 68)
-    note:SetPoint("BOTTOMRIGHT", -24, 68)
+    note:SetPoint("BOTTOMLEFT", 24, 56)
+    note:SetPoint("BOTTOMRIGHT", -24, 56)
     note:SetJustifyH("LEFT")
-    note:SetText("Color filters are overlay-based approximations for screenshots.")
+    note:SetText("Filters are color overlays, not image post-processing.\nEmotes match the animated Emote menu beside chat.")
 
     local reset = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
     reset:SetSize(118, 24)
-    reset:SetPoint("BOTTOMLEFT", 24, 32)
+    reset:SetPoint("BOTTOMLEFT", 24, 25)
     reset:SetText("Reset sliders")
     reset:SetScript("OnClick", ResetSettings)
+    controls.reset = reset
 
     local screenshot = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
     screenshot:SetSize(118, 24)
     screenshot:SetPoint("LEFT", reset, "RIGHT", 10, 0)
     screenshot:SetText("Screenshot")
     screenshot:SetScript("OnClick", TakeCleanScreenshot)
+    controls.screenshot = screenshot
 
     local credit = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    credit:SetPoint("BOTTOMRIGHT", -24, 12)
+    credit:SetPoint("BOTTOMRIGHT", -24, 7)
     credit:SetText("ideated by Tumnus-Nemesis")
 
     RefreshControlState()
@@ -763,20 +523,22 @@ end
 local function UpdateMinimapButtonPosition()
     if not minimapButton or not db or not db.minimap or not Minimap then return end
     local angle = math.rad(db.minimap.angle or defaults.minimap.angle)
-    local radius = ((Minimap:GetWidth() or 140) / 2) + 10
+    local radiusX = Minimap:GetWidth() / 2 + 10
+    local radiusY = Minimap:GetHeight() / 2 + 10
     minimapButton:ClearAllPoints()
-    minimapButton:SetPoint("CENTER", Minimap, "CENTER", math.cos(angle) * radius, math.sin(angle) * radius)
+    minimapButton:SetPoint("CENTER", Minimap, "CENTER", math.cos(angle) * radiusX, math.sin(angle) * radiusY)
 end
 
 local function SaveMinimapButtonPosition()
     if not db or not db.minimap or not Minimap or not UIParent or not GetCursorPosition then return end
     local centerX, centerY = Minimap:GetCenter()
     local cursorX, cursorY = GetCursorPosition()
-    local scale = UIParent:GetEffectiveScale() or 1
+    if not centerX or not centerY then return end
+    local scale = Minimap:GetEffectiveScale()
     cursorX = cursorX / scale
     cursorY = cursorY / scale
 
-    local angle = math.deg(Atan2(cursorY - centerY, cursorX - centerX))
+    local angle = math.deg(math.atan2(cursorY - centerY, cursorX - centerX))
     if angle < 0 then angle = angle + 360 end
     db.minimap.angle = Round(angle, 0)
     UpdateMinimapButtonPosition()
@@ -796,10 +558,6 @@ local function CreateMinimapButton()
     icon:SetPoint("CENTER")
     icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
-    local fallback = minimapButton:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    fallback:SetPoint("CENTER", 0, 0)
-    fallback:SetText("SC")
-
     local border = minimapButton:CreateTexture(nil, "OVERLAY")
     border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
     border:SetSize(54, 54)
@@ -817,7 +575,7 @@ local function CreateMinimapButton()
     minimapButton:SetScript("OnDragStop", function(self)
         self:SetScript("OnUpdate", nil)
         SaveMinimapButtonPosition()
-        After(0, function() self.wasDragged = nil end)
+        C_Timer.After(0, function() self.wasDragged = nil end)
     end)
     minimapButton:SetScript("OnEnter", function(self)
         if not GameTooltip then return end
@@ -836,12 +594,18 @@ local function CreateMinimapButton()
 end
 
 local function PrintHelp()
-    print("|cff7fffd4" .. ADDON_TITLE .. "|r /ssc, /ssc on, /ssc off, /ssc reset")
+    print("|cff7fffd4" .. ADDON_TITLE .. "|r /ssc, /ssc on, /ssc off, /ssc reset, /ssc shot")
 end
 
 local function HandleSlashCommand(message)
-    message = string.lower(Trim(message or ""))
-    if message == "on" then
+    message = string.lower(strtrim(message or ""))
+    if pendingShot then
+        print(ADDON_TITLE .. ": wait for the current capture to finish.")
+        return
+    end
+    if message == "shot" then
+        TakeCleanScreenshot()
+    elseif message == "on" then
         db.enabled = true
         ApplyCameraSettings()
         RefreshControlState()
@@ -879,18 +643,36 @@ local function RegisterSettingsPanel()
     hint:SetPoint("TOPLEFT", openButton, "BOTTOMLEFT", 0, -16)
     hint:SetText("Quick command: /ssc")
 
-    if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
-        local category = Settings.RegisterCanvasLayoutCategory(panel, ADDON_TITLE)
-        Settings.RegisterAddOnCategory(category)
-    elseif InterfaceOptions_AddCategory then
-        InterfaceOptions_AddCategory(panel)
+    local category = Settings.RegisterCanvasLayoutCategory(panel, ADDON_TITLE)
+    Settings.RegisterAddOnCategory(category)
+end
+
+local function NormalizeDatabase()
+    if type(_G[DB_GLOBAL]) ~= "table" then _G[DB_GLOBAL] = {} end
+    db = ApplyDefaults(_G[DB_GLOBAL], defaults)
+    db.horizontalOffset = Clamp(db.horizontalOffset, -10, 10)
+    db.verticalOffset = Clamp(db.verticalOffset, 0, 1)
+    for key in pairs(defaults.filters) do db.filters[key] = Clamp(db.filters[key], -1, 1) end
+    db.minimap.angle = Clamp(db.minimap.angle, 0, 360)
+    local anchors = { CENTER=true, TOP=true, BOTTOM=true, LEFT=true, RIGHT=true,
+        TOPLEFT=true, TOPRIGHT=true, BOTTOMLEFT=true, BOTTOMRIGHT=true }
+    if not anchors[db.window.point] then db.window.point = "CENTER" end
+    db.window.x = Clamp(db.window.x, -10000, 10000)
+    db.window.y = Clamp(db.window.y, -10000, 10000)
+    local originals = {}
+    for _, cvar in ipairs(controlledCVars) do
+        local value = tonumber(db.originals[cvar])
+        if value and value == value and math.abs(value) < math.huge then
+            originals[cvar] = tostring(value)
+        end
     end
+    db.originals = originals
+    BuildEmoteList()
+    if not emoteByCommand[db.selectedEmote] then db.selectedEmote = nil end
 end
 
 local function Initialize()
-    _G[DB_GLOBAL] = ApplyDefaults(_G[DB_GLOBAL] or {}, defaults)
-    db = _G[DB_GLOBAL]
-
+    NormalizeDatabase()
     CreateMainFrame()
     RegisterSettingsPanel()
     CreateMinimapButton()
@@ -898,17 +680,37 @@ local function Initialize()
     SLASH_SCREENSHOTCAMERA1 = "/ssc"
     SLASH_SCREENSHOTCAMERA2 = "/screenshotcamera"
     SlashCmdList.SCREENSHOTCAMERA = HandleSlashCommand
-
-    After(0.25, function()
-        ApplyCameraSettings()
-        RefreshControlState()
-    end)
+    ApplyCameraSettings()
+    RefreshControlState()
 end
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
-events:SetScript("OnEvent", function(_, event, loadedAddon)
+events:SetScript("OnEvent", function(self, event, loadedAddon)
     if event == "ADDON_LOADED" and loadedAddon == addonName then
+        self:UnregisterEvent("ADDON_LOADED")
+        self:RegisterEvent("PLAYER_LOGIN")
+    elseif event == "PLAYER_LOGIN" then
+        self:UnregisterEvent("PLAYER_LOGIN")
         Initialize()
+        self:RegisterEvent("PLAYER_LOGOUT")
+        self:RegisterEvent("PLAYER_REGEN_DISABLED")
+        self:RegisterEvent("PLAYER_REGEN_ENABLED")
+        self:RegisterEvent("SCREENSHOT_SUCCEEDED")
+        self:RegisterEvent("SCREENSHOT_FAILED")
+    elseif event == "SCREENSHOT_SUCCEEDED" or event == "SCREENSHOT_FAILED" then
+        if pendingShot and pendingShot.requested then
+            FinishScreenshot(event == "SCREENSHOT_FAILED" and "screenshot failed." or nil)
+        end
+    elseif event == "PLAYER_REGEN_DISABLED" then
+        if pendingShot then FinishScreenshot("screenshot cancelled on entering combat.") end
+        RefreshControlState()
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        if pendingShot and pendingShot.cancelled then FinishScreenshot() end
+        ApplyCameraSettings()
+        RefreshControlState()
+    elseif event == "PLAYER_LOGOUT" then
+        if pendingShot then FinishScreenshot() end
+        RestoreOriginals()
     end
 end)

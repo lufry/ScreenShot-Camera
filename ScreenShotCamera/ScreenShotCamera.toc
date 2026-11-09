@@ -1,8 +1,10 @@
-## Interface: 120000
+## Interface: 16001
+## AllowLoadGameType: camelot
 ## Title: ScreenShot Camera
-## Notes: Simple camera framing controls for cleaner screenshots.
+## Notes: Camera framing and clean screenshots for WoW Forever 1.60.1.70862 only.
 ## Author: Luca + Codex
-## Version: 0.1.0
+## Version: 1.0.0
+## X-Client-Version: 1.60.1.70862
 ## SavedVariables: ScreenShotCameraDB
 
 ScreenShotCamera.lua
